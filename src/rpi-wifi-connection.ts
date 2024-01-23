@@ -1,6 +1,13 @@
 import util from 'util';
 import { exec } from "child_process"
 
+export interface WiFiNetwork {
+    bssid: string,
+    frequency: number,
+    signal_level: number,
+    ssid: string
+}
+
 export default class RpiWiFiConnection {
     private network_interface: string
     constructor(network_interface: string = "wlan0") {
@@ -8,7 +15,7 @@ export default class RpiWiFiConnection {
     }
 
     /**
-     * Returns singleton list of SSIDs or empty list if not connected.
+     * Returns singleton list of SSID or empty list if not connected.
     */
     get_status = async () => {
         let connections: string[] = []
@@ -40,28 +47,30 @@ export default class RpiWiFiConnection {
     }
 
     /**
-     * Returns a list of SSIDs or empty list if not connected.
+     * Returns a list of network information or empty list if not connected.
     */
     scan_networks = async () => {
-        let scanned: string[] = []
+        let scanned: WiFiNetwork[] = []
     
-        await util.promisify(exec)("wpa_cli -i wlan0 scan_results")
+        await util.promisify(exec)(`wpa_cli -i ${this.network_interface} scan_results`)
         .then((result: {stdout: string, stderr: string}) => {
             if (result.stderr) {
                 console.log("Wi-Fi scan error: " + result.stderr)
             } else {
                 let raw_list = result.stdout.split(/\r?\n/)
-                raw_list.shift()
-                let ssids = new Set<string>()
+                raw_list.shift() // Remove the header.
                 raw_list.forEach((line) => {
                     const attribs = line.split('\t')
                     // In a normal output, there are 5 fields:
-                    // bssid, frequency, signal level, flags, and ssid
-                    if (attribs.length == 5) {
-                        ssids.add(attribs[4])
-                    }
+                    // bssid, frequency, signal level, flags, and ssid.
+                    // We skip the flags.
+                    scanned.push({
+                        bssid: attribs[0],
+                        frequency: parseInt(attribs[1]),
+                        signal_level: parseInt(attribs[2]),
+                        ssid: attribs[4]
+                    })
                 })
-                scanned = Array.from(ssids)
             }
         })
         .catch((error) => {
