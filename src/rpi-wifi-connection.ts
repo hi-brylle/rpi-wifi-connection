@@ -2,13 +2,13 @@ import util from 'util';
 import { exec } from "child_process"
 
 export default class RpiWiFiConnection {
-    network_interface: string
+    private network_interface: string
     constructor(network_interface: string = "wlan0") {
         this.network_interface = network_interface
     }
 
     /**
-     * Returns singleton list of connection or empty list if not connected.
+     * Returns singleton list of SSIDs or empty list if not connected.
     */
     get_status = async () => {
         let connections: string[] = []
