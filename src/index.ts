@@ -1,1 +1,1 @@
-export { RpiWiFiConnection } from "./rpi-wifi-connection";
+module.exports = require("./rpi-wifi-connection")
