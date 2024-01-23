@@ -1,7 +1,7 @@
 import util from 'util';
 import { exec } from "child_process"
 
-module.exports = class RpiWiFiConnection {
+export default class RpiWiFiConnection {
     network_interface: string
     constructor(network_interface: string = "wlan0") {
         this.network_interface = network_interface

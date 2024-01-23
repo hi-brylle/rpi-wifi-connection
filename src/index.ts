@@ -1,1 +1,2 @@
-module.exports = require("./rpi-wifi-connection")
+import RpiWiFiConnection from "./rpi-wifi-connection"
+export default RpiWiFiConnection
