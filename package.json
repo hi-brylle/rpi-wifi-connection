@@ -1,0 +1,11 @@
+{
+  "name": "rpi-wifi-connection",
+  "license":"MIT",
+  "scripts": {
+    "compile": "npx tsc && npx tsc --build tsconfig.es5.json"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.5",
+    "typescript": "^5.3.3"
+  }
+}
