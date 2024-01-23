@@ -1,13 +1,13 @@
 {
     "name": "@hi-brylle/rpi-wifi-connection",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Library for connecting a Raspberry Pi to Wi-Fi (internally uses wpa_cli)",
     "main": "lib/es5/index.js",
     "module": "lib/es6/index.js",
     "license": "MIT",
     "repository": {
         "type": "git",
-        "url": ""
+        "url": "https://github.com/hi-brylle/rpi-wifi-connection.git"
     },
     "keywords": [
         "rpi",
