@@ -1,6 +1,6 @@
 {
     "name": "@hi-brylle/rpi-wifi-connection",
-    "version": "2.0.0",
+    "version": "2.1.0",
     "description": "Library for connecting a Raspberry Pi to Wi-Fi (internally uses wpa_cli)",
     "main": "lib/es5/index.js",
     "module": "lib/es6/index.js",

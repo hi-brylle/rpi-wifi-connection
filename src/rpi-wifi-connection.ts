@@ -80,5 +80,94 @@ export default class RpiWiFiConnection {
         return scanned
     }
 
-    // TODO: Connect to a network.
+    /**
+     * Attempt connection to network.
+     * Use 'get_status' again to check whether connection succeeded or not.
+    */
+    connect_to_network = async (ssid: string, password: string) => {
+        // Connecting to the network requires some ceremony.
+        // The /etc/wpa_supplicant/wpa_supplicant.conf needs to be edited to
+        // contain a block of text containing our selected SSID and its input password.
+        // After this, a reconfigure command is used.
+        // In order for the wpa_supplicant to choose the network we inputted, we first
+        // remove all existing networks in the wpa_supplicant.conf file.
+
+        const get_existing_networks = async () => {
+            let network_ids: string[] = []
+
+            await util.promisify(exec)(`wpa_cli -i ${this.network_interface} list_networks`)
+            .then((result: {stdout: string, stderr: string}) => {
+                if (result.stderr) {
+                    throw new Error("Wi-Fi network list error: " + result.stderr)
+                } else {
+                    let raw_list = result.stdout.split(/\r?\n/)
+                    raw_list.shift() // Remove the header.
+                    raw_list.forEach((line) => {
+                        if (line.length > 0) {
+                            const attribs = line.split('\t')
+                            network_ids.push(attribs[0])
+                        }
+                    })
+                }
+            })
+            .catch((error) => {
+                throw new Error("Wi-Fi network list error: " + error)
+            })
+
+            return network_ids
+        }
+
+        const remove_existing_network = async (network_id: number) => {
+            await util.promisify(exec)(`wpa_cli -i ${this.network_interface} remove_network ${network_id}`)
+            .then(() => {
+                util.promisify(exec)(`wpa_cli -i ${this.network_interface} save_config`)
+            })
+        }
+
+        const add_new_network = async () => {
+            util.promisify(exec)(`wpa_cli -i ${this.network_interface} add_network`)
+            .then((result: {stdout: string, stderr: string}) => {
+                if (result.stderr) {
+                    throw new Error("Wi-Fi add network error: " + result.stderr)
+                } else {
+                    return parseInt(result.stdout) 
+                }
+            })
+            .then(async (new_network_id: number) => {
+                await util.promisify(exec)(`wpa_cli -i ${this.network_interface} set_network ${new_network_id} ssid '"${ssid}"'`)
+                return new_network_id
+            })
+            .then(async (new_network_id: number) => {
+                await util.promisify(exec)(`wpa_cli -i ${this.network_interface} set_network ${new_network_id} psk '"${password}"'`)
+                return new_network_id
+            })
+            .then(async (new_network_id: number) => {
+                await util.promisify(exec)(`wpa_cli -i ${this.network_interface} enable_network ${new_network_id}`)
+                return new_network_id
+            })
+            .then(async (new_network_id: number) => {
+                await util.promisify(exec)(`wpa_cli -i ${this.network_interface} select_network ${new_network_id}`)
+            })
+            .then(async () => {
+                await util.promisify(exec)(`wpa_cli -i ${this.network_interface} save_config`)
+            })
+        }
+
+        const reconfigure = async () => {
+            await util.promisify(exec)(`wpa_cli -i ${this.network_interface} reconfigure`)
+        }
+
+        await get_existing_networks()
+        .then((network_ids: string[]) => {
+            network_ids.forEach((id) => {
+                remove_existing_network(parseInt(id))
+            })
+        })
+        .then(add_new_network)
+        .then(reconfigure)
+        .catch((error: any) => {
+            console.log("Wi-Fi connection error: " + error)
+            reconfigure()
+        })
+    }
 }
