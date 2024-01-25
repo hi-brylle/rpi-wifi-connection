@@ -1,6 +1,6 @@
 # rpi-wifi-connection
 
-A wrapper library using wpa_cli for connecting a Raspberry Pi to Wi-Fi. Internally uses the wpa_cli tool.
+A wrapper library that uses [wpa_cli](https://linux.die.net/man/8/wpa_cli) for connecting a Raspberry Pi to Wi-Fi.
 
 ## Installation
 
