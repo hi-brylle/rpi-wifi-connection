@@ -8,6 +8,11 @@ export interface WiFiNetwork {
     ssid: string
 }
 
+interface ConfiguredNetwork {
+    id: number,
+    ssid: string
+}
+
 export default class RpiWiFiConnection {
     private network_interface: string
     constructor(network_interface: string = "wlan0") {
@@ -93,35 +98,30 @@ export default class RpiWiFiConnection {
         // remove all existing networks in the wpa_supplicant.conf file.
 
         const get_existing_networks = async () => {
-            let network_ids: string[] = []
-
-            await util.promisify(exec)(`wpa_cli -i ${this.network_interface} list_networks`)
+            return util.promisify(exec)(`wpa_cli -i ${this.network_interface} list_networks`)
             .then((result: {stdout: string, stderr: string}) => {
                 if (result.stderr) {
                     throw new Error("Wi-Fi network list error: " + result.stderr)
                 } else {
+                    let network_ids: ConfiguredNetwork[] = []
                     let raw_list = result.stdout.split(/\r?\n/)
                     raw_list.shift() // Remove the header.
                     raw_list.forEach((line) => {
                         if (line.length > 0) {
                             const attribs = line.split('\t')
-                            network_ids.push(attribs[0])
+                            network_ids.push({
+                                id: parseInt(attribs[0]),
+                                ssid: attribs[1]
+                            })
                         }
                     })
+                    return network_ids
                 }
             })
-            .catch((error) => {
-                throw new Error("Wi-Fi network list error: " + error)
-            })
-
-            return network_ids
         }
 
         const remove_existing_network = async (network_id: number) => {
             await util.promisify(exec)(`wpa_cli -i ${this.network_interface} remove_network ${network_id}`)
-            .then(() => {
-                util.promisify(exec)(`wpa_cli -i ${this.network_interface} save_config`)
-            })
         }
 
         const add_new_network = async () => {
@@ -158,10 +158,12 @@ export default class RpiWiFiConnection {
         }
 
         await get_existing_networks()
-        .then((network_ids: string[]) => {
-            network_ids.forEach((id) => {
-                remove_existing_network(parseInt(id))
-            })
+        .then((configured_networks: ConfiguredNetwork[]) => {
+            configured_networks
+                .filter(network => network.ssid == ssid)
+                .forEach((network) => {
+                    remove_existing_network(network.id)
+                })
         })
         .then(add_new_network)
         .then(reconfigure)
