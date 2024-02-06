@@ -98,13 +98,13 @@ export default class RpiWiFiConnection {
         // After this, a reconfigure command is used.
 
         const get_existing_networks = async () => {
-            return await util.promisify(exec)(`wpa_cli -i ${this.network_interface} list_networks`)
+            let configured_networks: ConfiguredNetwork[] = []
+
+            await util.promisify(exec)(`wpa_cli -i ${this.network_interface} list_networks`)
             .then((result: {stdout: string, stderr: string}) => {
                 if (result.stderr) {
                     console.log("Wi-Fi network list error: " + result.stderr)
-                    return [] as ConfiguredNetwork[]
                 } else {
-                    let configured_networks: ConfiguredNetwork[] = []
                     let raw_list = result.stdout.split(/\r?\n/)
                     raw_list.shift() // Remove the header.
                     raw_list.forEach((line) => {
@@ -116,9 +116,14 @@ export default class RpiWiFiConnection {
                             })
                         }
                     })
-                    return configured_networks
+                    
                 }
             })
+            .catch((error) => {
+                console.log("Wi-Fi network list error: " + error)
+            })
+
+            return configured_networks
         }
 
         const remove_existing_network = async (network_id: number) => {
@@ -161,9 +166,10 @@ export default class RpiWiFiConnection {
         await get_existing_networks()
         .then((configured_networks: ConfiguredNetwork[]) => {
             configured_networks
-                .filter(network => network.ssid == ssid)
                 .forEach((network) => {
-                    remove_existing_network(network.id)
+                    if (network.ssid == ssid) {
+                        remove_existing_network(network.id)
+                    }
                 })
         })
         .then(add_new_network)
