@@ -182,7 +182,7 @@ export default class RpiWiFiConnection {
         .then((result: {stdout: string, stderr: string}) => {
             if (result.stderr) {
                 console.log("Wi-Fi network list error: " + result.stderr)
-                return false
+                return [] as string[]
             } else {
                 let configured_networks: ConfiguredNetwork[] = []
                 let raw_list = result.stdout.split(/\r?\n/)
