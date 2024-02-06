@@ -98,10 +98,11 @@ export default class RpiWiFiConnection {
         // After this, a reconfigure command is used.
 
         const get_existing_networks = async () => {
-            return util.promisify(exec)(`wpa_cli -i ${this.network_interface} list_networks`)
+            return await util.promisify(exec)(`wpa_cli -i ${this.network_interface} list_networks`)
             .then((result: {stdout: string, stderr: string}) => {
                 if (result.stderr) {
-                    throw new Error("Wi-Fi network list error: " + result.stderr)
+                    console.log("Wi-Fi network list error: " + result.stderr)
+                    return [] as ConfiguredNetwork[]
                 } else {
                     let configured_networks: ConfiguredNetwork[] = []
                     let raw_list = result.stdout.split(/\r?\n/)
