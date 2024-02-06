@@ -93,9 +93,9 @@ export default class RpiWiFiConnection {
         // Connecting to the network requires some ceremony.
         // The /etc/wpa_supplicant/wpa_supplicant.conf needs to be edited to
         // contain a block of text containing our selected SSID and its input password.
+        // We 'update' the wpa_supplicant.conf by removing any possibly outdated information
+        // on our selected SSID and then immediately adding it again.
         // After this, a reconfigure command is used.
-        // In order for the wpa_supplicant to choose the network we inputted, we first
-        // remove all existing networks in the wpa_supplicant.conf file.
 
         const get_existing_networks = async () => {
             return util.promisify(exec)(`wpa_cli -i ${this.network_interface} list_networks`)
