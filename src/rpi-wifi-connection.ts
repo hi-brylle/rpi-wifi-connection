@@ -116,7 +116,6 @@ export default class RpiWiFiConnection {
                             })
                         }
                     })
-                    
                 }
             })
             .catch((error) => {
@@ -128,10 +127,13 @@ export default class RpiWiFiConnection {
 
         const remove_existing_network = async (network_id: number) => {
             await util.promisify(exec)(`wpa_cli -i ${this.network_interface} remove_network ${network_id}`)
+            .then(() => {
+                util.promisify(exec)(`wpa_cli -i ${this.network_interface} save_config`)
+            })
         }
 
         const add_new_network = async () => {
-            util.promisify(exec)(`wpa_cli -i ${this.network_interface} add_network`)
+            await util.promisify(exec)(`wpa_cli -i ${this.network_interface} add_network`)
             .then((result: {stdout: string, stderr: string}) => {
                 if (result.stderr) {
                     throw new Error("Wi-Fi add network error: " + result.stderr)
@@ -166,48 +168,21 @@ export default class RpiWiFiConnection {
         await get_existing_networks()
         .then((configured_networks: ConfiguredNetwork[]) => {
             configured_networks
+                .filter(n => n.ssid == ssid)
                 .forEach((network) => {
-                    if (network.ssid == ssid) {
-                        remove_existing_network(network.id)
-                    }
+                    remove_existing_network(network.id)
                 })
         })
-        .then(add_new_network)
+
+        await add_new_network()
         .then(reconfigure)
-        .catch((error: any) => {
-            console.log("Wi-Fi connection error: " + error)
-            reconfigure()
-        })
     }
 
     /**
      * Check if network is previously configured.
      * This is a prelude to an auto-connect attempt.
     */
-    is_network_configured = async (ssid: string) => {
-        return util.promisify(exec)(`wpa_cli -i ${this.network_interface} list_networks`)
-        .then((result: {stdout: string, stderr: string}) => {
-            if (result.stderr) {
-                console.log("Wi-Fi network list error: " + result.stderr)
-                return [] as string[]
-            } else {
-                let configured_networks: ConfiguredNetwork[] = []
-                let raw_list = result.stdout.split(/\r?\n/)
-                raw_list.shift() // Remove the header.
-                raw_list.forEach((line) => {
-                    if (line.length > 0) {
-                        const attribs = line.split('\t')
-                        configured_networks.push({
-                            id: parseInt(attribs[0]),
-                            ssid: attribs[1]
-                        })
-                    }
-                })
-                return configured_networks.map(n => n.ssid)
-            }
-        })
-        .then((ssids: string[]) => {
-            return ssids.includes(ssid)
-        })
-    }
+    // is_network_configured = async (ssid: string) => {
+        
+    // }
 }
