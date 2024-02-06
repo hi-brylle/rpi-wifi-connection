@@ -103,19 +103,19 @@ export default class RpiWiFiConnection {
                 if (result.stderr) {
                     throw new Error("Wi-Fi network list error: " + result.stderr)
                 } else {
-                    let network_ids: ConfiguredNetwork[] = []
+                    let configured_networks: ConfiguredNetwork[] = []
                     let raw_list = result.stdout.split(/\r?\n/)
                     raw_list.shift() // Remove the header.
                     raw_list.forEach((line) => {
                         if (line.length > 0) {
                             const attribs = line.split('\t')
-                            network_ids.push({
+                            configured_networks.push({
                                 id: parseInt(attribs[0]),
                                 ssid: attribs[1]
                             })
                         }
                     })
-                    return network_ids
+                    return configured_networks
                 }
             })
         }
@@ -170,6 +170,37 @@ export default class RpiWiFiConnection {
         .catch((error: any) => {
             console.log("Wi-Fi connection error: " + error)
             reconfigure()
+        })
+    }
+
+    /**
+     * Check if network is previously configured.
+     * This is a prelude to an auto-connect attempt.
+    */
+    is_network_configured = async (ssid: string) => {
+        return util.promisify(exec)(`wpa_cli -i ${this.network_interface} list_networks`)
+        .then((result: {stdout: string, stderr: string}) => {
+            if (result.stderr) {
+                console.log("Wi-Fi network list error: " + result.stderr)
+                return false
+            } else {
+                let configured_networks: ConfiguredNetwork[] = []
+                let raw_list = result.stdout.split(/\r?\n/)
+                raw_list.shift() // Remove the header.
+                raw_list.forEach((line) => {
+                    if (line.length > 0) {
+                        const attribs = line.split('\t')
+                        configured_networks.push({
+                            id: parseInt(attribs[0]),
+                            ssid: attribs[1]
+                        })
+                    }
+                })
+                return configured_networks.map(n => n.ssid)
+            }
+        })
+        .then((ssids: string[]) => {
+            return ssids.includes(ssid)
         })
     }
 }
