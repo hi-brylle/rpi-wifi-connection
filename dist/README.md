@@ -28,6 +28,15 @@ interface WiFiNetwork {
 }
 ```
 
+### `ConfiguredNetwork`
+Type returned when querying for networks previously connected to.
+```ts
+interface ConfiguredNetwork {
+    id: number,
+    ssid: string
+}
+```
+
 
 ## Methods
 
@@ -37,5 +46,17 @@ Returns a singleton list containing the sole SSID if device is connected or empt
 ### `scan_networks()`
 Returns a list of `WifiNetwork` or empty list if nothing is detected.
 
+### `get_configured_networks()`
+Returns a list of `ConfiguredNetwork` or empty list if the RPi has never
+connected to a Wi-Fi network.
+
 ### `connect_to_network(ssid: string, password: string)`
 Attempts connection with `ssid` and `password` input. Doesn't return anything. Use `get_status()` to check whether connection attempt succeeded.
+
+### `forget_network(ssid_to_forget: string)`
+Remove previously configured network from the RPi to prevent it from auto-connecting to that network in the future.
+
+### `auto_connect_to_network(ssid: string)`
+Auto-connect to a previously configured network. If `ssid` input doesn't
+belong to the list returned by `get_configured_networks()`, nothing happens. 
+Use `get_status()` to check whether connection attempt succeeded.

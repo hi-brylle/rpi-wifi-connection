@@ -8,7 +8,7 @@ export interface WiFiNetwork {
     ssid: string
 }
 
-interface ConfiguredNetwork {
+export interface ConfiguredNetwork {
     id: number,
     ssid: string
 }
@@ -86,21 +86,13 @@ export default class RpiWiFiConnection {
     }
 
     /**
-     * Attempt connection to network.
-     * Use 'get_status' again to check whether connection succeeded or not.
+     * Returns a list of network information of previously configuredn networks.
+     * Returns empty list if not connected.
     */
-    connect_to_network = async (ssid: string, password: string) => {
-        // Connecting to the network requires some ceremony.
-        // The /etc/wpa_supplicant/wpa_supplicant.conf needs to be edited to
-        // contain a block of text containing our selected SSID and its input password.
-        // We 'update' the wpa_supplicant.conf by removing any possibly outdated information
-        // on our selected SSID and then immediately adding it again.
-        // After this, a reconfigure command is used.
-
-        const get_existing_networks = async () => {
-            let configured_networks: ConfiguredNetwork[] = []
-
-            await util.promisify(exec)(`wpa_cli -i ${this.network_interface} list_networks`)
+    get_configured_networks = async () => {
+        let configured_networks: ConfiguredNetwork[] = []
+    
+            await util.promisify(exec)(`wpa_cli -i wlan0 list_networks`)
             .then((result: {stdout: string, stderr: string}) => {
                 if (result.stderr) {
                     console.log("Wi-Fi network list error: " + result.stderr)
@@ -121,16 +113,21 @@ export default class RpiWiFiConnection {
             .catch((error) => {
                 console.log("Wi-Fi network list error: " + error)
             })
+    
+        return configured_networks
+    }
 
-            return configured_networks
-        }
-
-        const remove_existing_network = async (network_id: number) => {
-            await util.promisify(exec)(`wpa_cli -i ${this.network_interface} remove_network ${network_id}`)
-            .then(() => {
-                util.promisify(exec)(`wpa_cli -i ${this.network_interface} save_config`)
-            })
-        }
+    /**
+     * Attempt connection to network.
+     * Use 'get_status' again to check whether connection succeeded or not.
+    */
+    connect_to_network = async (ssid: string, password: string) => {
+        // Connecting to the network requires some ceremony.
+        // The /etc/wpa_supplicant/wpa_supplicant.conf needs to be edited to
+        // contain a block of text containing our selected SSID and its input password.
+        // We 'update' the wpa_supplicant.conf by removing any possibly outdated information
+        // on our selected SSID and then immediately adding it again.
+        // After this, a reconfigure command is used.
 
         const add_new_network = async () => {
             await util.promisify(exec)(`wpa_cli -i ${this.network_interface} add_network`)
@@ -165,12 +162,12 @@ export default class RpiWiFiConnection {
             await util.promisify(exec)(`wpa_cli -i ${this.network_interface} reconfigure`)
         }
 
-        await get_existing_networks()
+        await this.get_configured_networks()
         .then((configured_networks: ConfiguredNetwork[]) => {
             configured_networks
                 .filter(n => n.ssid == ssid)
                 .forEach((network) => {
-                    remove_existing_network(network.id)
+                    this.remove_existing_network(network.id)
                 })
         })
 
@@ -178,11 +175,32 @@ export default class RpiWiFiConnection {
         .then(reconfigure)
     }
 
+    private remove_existing_network = async (network_id: number) => {
+        await util.promisify(exec)(`wpa_cli -i wlan0 remove_network ${network_id}`)
+        .then(() => {
+            util.promisify(exec)(`wpa_cli -i wlan0 save_config`)
+        })
+    }
+
     /**
-     * Check if network is previously configured.
-     * This is a prelude to an auto-connect attempt.
+     * Remove a previously configured network.
     */
-    // is_network_configured = async (ssid: string) => {
-        
-    // }
+    forget_network = async (ssid_to_forget: string) => {
+        (await this.get_configured_networks())
+            .filter((cn) => cn.ssid == ssid_to_forget) // There may be multiple configured networks for the same SSID
+            .forEach((network_to_forget) => {
+                this.remove_existing_network(network_to_forget.id)
+            })
+    }
+
+    /**
+     * Auto-connect to a previously configured network.
+     * Use 'get_status' again to check whether connection succeeded or not.
+    */
+    auto_connect_to_network = async (ssid: string) => {
+        let network_to_connect_to = (await this.get_configured_networks()).find((cn) => cn.ssid == ssid)
+        if (network_to_connect_to) {
+            await util.promisify(exec)(`wpa_cli -i wlan0 select_network ${network_to_connect_to.id}`)
+        }
+    }
 }
