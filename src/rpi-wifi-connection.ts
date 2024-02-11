@@ -79,7 +79,7 @@ export default class RpiWiFiConnection {
     }
 
     /**
-     * Returns a list of network information of previously configuredn networks.
+     * Returns a list of network information of previously configured networks.
      * Returns empty list if not connected.
     */
     get_configured_networks = async () => {
