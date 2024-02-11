@@ -51,13 +51,13 @@ export default class RpiWiFiConnection {
      * Returns a list of network information or empty list if not connected.
     */
     scan_networks = async () => {
-        let scanned: WiFiNetwork[] = []
-    
-        await util.promisify(exec)(`wpa_cli -i ${this.network_interface} scan_results`)
+        return await util.promisify(exec)(`wpa_cli -i ${this.network_interface} scan_results`)
         .then((result: {stdout: string, stderr: string}) => {
             if (result.stderr) {
                 console.log("Wi-Fi scan error: " + result.stderr)
+                return [] as WiFiNetwork[]
             } else {
+                let scanned: WiFiNetwork[] = []
                 let raw_list = result.stdout.split(/\r?\n/)
                 raw_list.shift() // Remove the header.
                 raw_list.forEach((line) => {
@@ -72,13 +72,10 @@ export default class RpiWiFiConnection {
                         ssid: attribs[4]
                     })
                 })
+
+                return scanned
             }
         })
-        .catch((error) => {
-            console.log("Wi-Fi scan error: " + error)
-        })
-    
-        return scanned
     }
 
     /**
