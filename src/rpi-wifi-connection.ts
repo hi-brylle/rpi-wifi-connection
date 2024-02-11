@@ -54,7 +54,6 @@ export default class RpiWiFiConnection {
         return await util.promisify(exec)(`wpa_cli -i ${this.network_interface} scan_results`)
         .then((result: {stdout: string, stderr: string}) => {
             if (result.stderr) {
-                console.log("Wi-Fi scan error: " + result.stderr)
                 return [] as WiFiNetwork[]
             } else {
                 let scanned: WiFiNetwork[] = []
