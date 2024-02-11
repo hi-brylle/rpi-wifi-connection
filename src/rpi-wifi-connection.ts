@@ -83,31 +83,27 @@ export default class RpiWiFiConnection {
      * Returns empty list if not connected.
     */
     get_configured_networks = async () => {
-        let configured_networks: ConfiguredNetwork[] = []
-    
-            await util.promisify(exec)(`wpa_cli -i wlan0 list_networks`)
-            .then((result: {stdout: string, stderr: string}) => {
-                if (result.stderr) {
-                    console.log("Wi-Fi network list error: " + result.stderr)
-                } else {
-                    let raw_list = result.stdout.split(/\r?\n/)
-                    raw_list.shift() // Remove the header.
-                    raw_list.forEach((line) => {
-                        if (line.length > 0) {
-                            const attribs = line.split('\t')
-                            configured_networks.push({
-                                id: parseInt(attribs[0]),
-                                ssid: attribs[1]
-                            })
-                        }
-                    })
-                }
-            })
-            .catch((error) => {
-                console.log("Wi-Fi network list error: " + error)
-            })
-    
-        return configured_networks
+        return await util.promisify(exec)(`wpa_cli -i wlan0 list_networks`)
+        .then((result: {stdout: string, stderr: string}) => {
+            if (result.stderr) {
+                return [] as ConfiguredNetwork[]
+            } else {
+                let configured_networks: ConfiguredNetwork[] = []
+                let raw_list = result.stdout.split(/\r?\n/)
+                raw_list.shift() // Remove the header.
+                raw_list.forEach((line) => {
+                    if (line.length > 0) {
+                        const attribs = line.split('\t')
+                        configured_networks.push({
+                            id: parseInt(attribs[0]),
+                            ssid: attribs[1]
+                        })
+                    }
+                })
+
+                return configured_networks
+            }
+        })
     }
 
     /**
