@@ -23,13 +23,12 @@ export default class RpiWiFiConnection {
      * Returns singleton list of SSID or empty list if not connected.
     */
     get_status = async () => {
-        let connections: string[] = []
-
-        await util.promisify(exec)(`wpa_cli -i ${this.network_interface} status`)
+        return await util.promisify(exec)(`wpa_cli -i ${this.network_interface} status`)
         .then((result: {stdout: string, stderr: string}) => {
             if (result.stderr) {
-                console.log("Wi-Fi connection status error: " + result.stderr)
+                return [] as string[]
             } else {
+                let connections: string[] = []
                 let raw_list = result.stdout.split(/\r?\n/)
                 let object = {}
                 raw_list.forEach((line) => {
@@ -42,13 +41,10 @@ export default class RpiWiFiConnection {
                     object["wpa_state"] as string == "COMPLETED") {
                     connections.push(object["ssid"] as string)
                 }
+
+                return connections
             }
         })
-        .catch((error) => {
-            console.log("Wi-Fi connection status error: " + error)
-        })
-
-        return connections
     }
 
     /**
