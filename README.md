@@ -1,7 +1,7 @@
 # Dev README
 
 This is the README for the developer (which is just me), meant for making me remember the workflow of publishing to NPM.
-The README for the project is inside `/dist`.
+The [project README](https://github.com/hi-brylle/rpi-wifi-connection/tree/master/dist#readme) is inside `/dist`.
 
 This repo is set up such that `/dist` contains nothing but the project README and its `package.json` file.
 The contents of `/dist` are the ones getting published to NPM but are otherwise not tracked by Git because
