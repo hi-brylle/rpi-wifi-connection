@@ -82,7 +82,7 @@ export default class RpiWiFiConnection {
      * Returns empty list if not connected.
     */
     get_configured_networks = async () => {
-        return await util.promisify(exec)(`wpa_cli -i wlan0 list_networks`)
+        return await util.promisify(exec)(`wpa_cli -i ${this.network_interface} list_networks`)
         .then((result: {stdout: string, stderr: string}) => {
             if (result.stderr) {
                 return [] as ConfiguredNetwork[]
@@ -164,9 +164,9 @@ export default class RpiWiFiConnection {
     }
 
     private remove_existing_network = async (network_id: number) => {
-        await util.promisify(exec)(`wpa_cli -i wlan0 remove_network ${network_id}`)
+        await util.promisify(exec)(`wpa_cli -i ${this.network_interface} remove_network ${network_id}`)
         .then(() => {
-            util.promisify(exec)(`wpa_cli -i wlan0 save_config`)
+            util.promisify(exec)(`wpa_cli -i ${this.network_interface} save_config`)
         })
     }
 
@@ -188,7 +188,24 @@ export default class RpiWiFiConnection {
     auto_connect_to_network = async (ssid: string) => {
         let network_to_connect_to = (await this.get_configured_networks()).find((cn) => cn.ssid == ssid)
         if (network_to_connect_to) {
-            await util.promisify(exec)(`wpa_cli -i wlan0 select_network ${network_to_connect_to.id}`)
+            await util.promisify(exec)(`wpa_cli -i ${this.network_interface} select_network ${network_to_connect_to.id}`)
         }
+    }
+
+    /**
+     * Disconnect from Wi-Fi.
+    */
+    disconnect_from_wifi = async () => {
+        await util.promisify(exec)(`wpa_cli -i ${this.network_interface} disconnect`)
+    }
+
+    /**
+     * Reconnect to Wi-Fi. Effects may not be immediate
+     * so call `get_status` to check connection status or
+     * call `scan_networks` to query all available networks
+     * after some timeout.
+    */
+    reconnect_to_wifi = async () => {
+        await util.promisify(exec)(`wpa_cli -i ${this.network_interface} reconnect`)
     }
 }
