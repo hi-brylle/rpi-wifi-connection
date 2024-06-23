@@ -60,3 +60,12 @@ Remove previously configured network from the RPi to prevent it from auto-connec
 Auto-connect to a previously configured network. If `ssid` input doesn't
 belong to the list returned by `get_configured_networks()`, nothing happens. 
 Use `get_status()` to check whether connection attempt succeeded.
+
+### `disconnect_from_wifi()`
+Disconnect from Wi-Fi.
+
+### `reconnect_to_wifi()`
+Reconnect to Wi-Fi. Effects may not be immediate
+so call `get_status()` to check connection status or
+call `scan_networks()` to query all available networks
+after some timeout.
