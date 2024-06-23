@@ -15,3 +15,4 @@ A successful compilation will update the distributable code inside `/dist`.
 3. `cd` into `/dist`.
 4. Update the package version using the appropriate `npm version patch|minor|major` command following semantic versioning rules.
 5. Deploy distributable code to NPM using `npm publish`.
+6. Commit changes to Git and push.
