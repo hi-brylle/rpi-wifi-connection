@@ -1,4 +1,4 @@
-import util from 'util';
+import util from 'node:util';
 import { exec } from "child_process"
 
 export interface WiFiNetwork {
@@ -13,7 +13,7 @@ export interface ConfiguredNetwork {
     ssid: string
 }
 
-export default class RpiWiFiConnection {
+export class RpiWiFiConnection {
     private network_interface: string
     constructor(network_interface: string = "wlan0") {
         this.network_interface = network_interface

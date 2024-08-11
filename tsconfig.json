@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "outDir": "dist",
+        "declaration": true,
+        "declarationMap": true,  // Optional: Generates declaration source maps
+        "emitDeclarationOnly": true,  // Ensures tsc only emits dts files
+        "strict": true,
+        "skipLibCheck": true,
+        "module": "ESNext",
+        "target": "ES2020",
+        "moduleResolution": "node",
+        "esModuleInterop": true
+    },
+    "include": ["src/**/*.ts"],
+    "exclude": ["node_modules", "dist"]
+}
