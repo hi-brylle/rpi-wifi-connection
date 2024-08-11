@@ -2,7 +2,7 @@
   "name": "rpi-wifi-connection",
   "license": "MIT",
   "scripts": {
-    "compile": "npx tsc && npx tsc --build tsconfig.es5.json"
+    "build": "tsup ./src"
   },
   "devDependencies": {
     "@types/node": "^20.11.5",
