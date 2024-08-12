@@ -1,14 +1,36 @@
 {
-    "name": "rpi-wifi-connection",
+    "name": "@hi-brylle/rpi-wifi-connection",
     "license": "MIT",
+    "description": "Library for connecting a Raspberry Pi to Wi-Fi (internally uses wpa_cli)",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/hi-brylle/rpi-wifi-connection.git"
+    },
+    "keywords": [
+        "rpi",
+        "wifi",
+        "wpa_cli"
+    ],
     "scripts": {
         "build": "tsup ./src",
         "build:dts": "tsc --emitDeclarationOnly",
-        "build:all": "npm run build && npm run build:dts"
+        "build:all": "npm run build && npm run build:dts",
+        "compile": "tsup ./src && tsc --emitDeclarationOnly"
     },
     "devDependencies": {
         "@types/node": "^20.11.5",
         "tsup": "^8.2.4",
         "typescript": "^5.3.3"
-    }
+    },
+    "files": ["dist", "package.json"],
+    "exports": {
+        ".": {
+            "require": "./dist/index.js",
+            "import": "./dist/index.mjs",
+            "types": "./dist/index.d.ts"
+        }
+    },
+    "main": "./dist/index.js",
+    "module": "./dist/index.mjs",
+    "types": "./dist/index.d.ts"
 }
