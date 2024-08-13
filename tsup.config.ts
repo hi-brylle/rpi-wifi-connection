@@ -5,6 +5,7 @@ export default defineConfig({
     entry: ['./src/index.ts'],
     dts: true,
     shims: true,
-    skipNodeModulesBundle: true,
+    splitting: false,
+    sourcemap: true,
     clean: true,
 });
