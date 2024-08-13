@@ -209,3 +209,5 @@ export class RpiWiFiConnection {
         await util.promisify(exec)(`wpa_cli -i ${this.network_interface} reconnect`)
     }
 }
+
+module.exports = RpiWiFiConnection
