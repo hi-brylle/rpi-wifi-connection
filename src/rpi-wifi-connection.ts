@@ -1,19 +1,9 @@
 import util from 'node:util';
 import { exec } from "child_process"
+import WiFiNetwork from './wifi-network';
+import ConfiguredNetwork from './configured-network';
 
-export interface WiFiNetwork {
-    bssid: string,
-    frequency: number,
-    signal_level: number,
-    ssid: string
-}
-
-export interface ConfiguredNetwork {
-    id: number,
-    ssid: string
-}
-
-export class RpiWiFiConnection {
+export default class RpiWiFiConnection {
     private network_interface: string
     constructor(network_interface: string = "wlan0") {
         this.network_interface = network_interface
@@ -209,5 +199,3 @@ export class RpiWiFiConnection {
         await util.promisify(exec)(`wpa_cli -i ${this.network_interface} reconnect`)
     }
 }
-
-module.exports = RpiWiFiConnection
