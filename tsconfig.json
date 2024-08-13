@@ -1,16 +1,17 @@
 {
     "compilerOptions": {
-        "outDir": "dist",
-        "declaration": true,
-        "declarationMap": true,  // Optional: Generates declaration source maps
-        "emitDeclarationOnly": true,  // Ensures tsc only emits dts files
         "strict": true,
-        "skipLibCheck": true,
-        "module": "ESNext",
-        "target": "ES2020",
-        "moduleResolution": "node",
-        "esModuleInterop": true
+        "noImplicitAny": true,
+        "esModuleInterop": true,
+        "strictNullChecks": true,
+        "target": "ES2022",
+        "moduleResolution": "Node10",
+        "module": "CommonJS",
+        "declaration": true,
+        "isolatedModules": true,
+        "noEmit": true,
+        "outDir": "dist"
     },
-    "include": ["src/**/*.ts"],
-    "exclude": ["node_modules", "dist"]
+    "include": ["src"],
+    "exclude": ["node_modules"]
 }
